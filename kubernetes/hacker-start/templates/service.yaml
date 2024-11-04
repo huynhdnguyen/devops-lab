@@ -1,0 +1,17 @@
+{{- range $name, $service := .Values.kubernetes.services }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Values.app_name }}-{{ $name }}
+  namespace: {{ $.Values.kubernetes.namespace.app }}
+spec:
+  type: {{ $service.type }}
+  ports:
+    - port: {{ $service.port }}
+      targetPort: {{ $service.targetPort }}
+      protocol: TCP
+  selector:
+    app: {{ $.Values.app_name }}
+    component: {{ $name }}
+---
+{{- end }}

@@ -1,0 +1,94 @@
+pipeline {
+    agent {
+        docker {
+            image 'docker:dind'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    environment {
+        // DOCKER_REGISTRY = credentials('docker-registry-credentials')
+        // KUBE_CONFIG = credentials('kubernetes-config')
+        GITHUB_CREDENTIALS = credentials('github-credentials')
+        DOCKER_IMAGE_NAME = "ghcr.io/${GITHUB_CREDENTIALS_USR}/${SERVICE}"
+        DOCKER_IMAGE_TAG = "${env.BUILD_NUMBER}"
+        REPO = "https://github.com/sahat/hackathon-starter.git"
+        REGISTRY = "ghcr.io/${GITHUB_CREDENTIALS_USR}"
+        SERVICE = "hackathon-starter"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+            // Checkout code from the repository
+            sh 'printenv'
+            sh 'rm -rf $WORKSPACE/*'
+            sh 'git clone $REPO'
+            }
+        }
+
+        // stage('Install Dependencies') {
+        //     steps {
+        //     // Install project dependencies
+        //     sh 'npm install'
+        //     }
+        // }
+
+        // stage('Run Tests') {
+        //     steps {
+        //     // Run automated tests
+        //     sh 'npm test'
+        //     }
+        // }
+
+        // stage('Feature Tests') {
+        //     when {
+        //     expression {
+        //         return fileExists('test/blog.js')
+        //     }
+        //     }
+        //     steps {
+        //     // Run additional feature-specific tests if they exist
+        //     sh 'npm run test:blog'
+        //     }
+        // }
+
+        stage('Build Docker Image') {
+            steps {
+            // Build Docker image for the service
+            sh 'cd hackathon-starter && docker build -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} -f Dockerfile .'
+            }
+        }
+        stage('Login to GitHub Container Registry && Push Docker Image') {
+            steps {
+                sh 'echo ${GITHUB_CREDENTIALS_PSW} | docker login ghcr.io -u ${GITHUB_CREDENTIALS_USR} --password-stdin'
+                sh 'docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
+            }
+        }
+
+        // stage('Push Docker Image') {
+        //     steps {
+        //     // Push the built Docker image to the registry
+        //     sh 'docker push {registry}/{service}:$BUILD_NUMBER'
+        //     }
+        // }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+            // Apply Kubernetes manifests and set image for the service
+            sh 'kubectl config use-context minikube'
+            sh 'kubectl set image deployment/hackathon-starter-frontend app=${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
+}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.kubernetes.namespace.app }}-config
+  namespace: {{ .Values.kubernetes.namespace.app }}
+data:
+  MONGODB_URI: mongodb://mongodb:27017

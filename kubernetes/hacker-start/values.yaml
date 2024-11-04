@@ -1,0 +1,129 @@
+app_name: hackathon-starter
+environment: production
+
+database:
+  type: mongodb
+  host: mongodb.default.svc.cluster.local
+  port: 27017
+  name: hackathon_db
+  username: a
+  password: b
+
+dockerRegistry:
+  url: your-registry.azurecr.io
+  username: ${DOCKER_REGISTRY_USERNAME}
+  password: DOCKER_REGISTRY_PASSWORD
+
+kubernetes:
+  namespace:
+    cicd: jenkins
+    app: app
+    log: log
+    
+  deployments:
+    app:
+      name: backend
+      replicas: 1
+      image: backend:latest
+      containerPort: 8080
+      resources:
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+      env:
+        - name: MONGODB_URI
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MONGODB_URI
+        # - name: DB_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: app-secrets
+        #       key: DB_PASSWORD
+
+  services:
+    backend:
+      name: backend
+      port: 8080
+      targetPort: 8080
+      type: NodePort
+
+  ingress:
+    enabled: false
+    host: hackathon-starter.example.com
+    tls_secret: hackathon-starter-tls
+
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+logging:
+  elasticsearch:
+    enabled: true
+  kibana:
+    enabled: true
+# # Environment Configuration
+
+# # Application Settings
+# app_name: hackathon-starter
+# environment: production
+
+# # Database Settings
+# database:
+#   type: mongodb
+#   host: mongodb.default.svc.cluster.local
+#   port: 27017
+#   name: hackathon_db
+#   username: a
+#   password: b
+
+# # Docker Registry
+# docker_registry:
+#   url: your-registry.azurecr.io
+#   username: ${DOCKER_REGISTRY_USERNAME}
+#   password: DOCKER_REGISTRY_PASSWORD
+
+# # Kubernetes Settings
+# kubernetes:
+#   deployments:
+#     image: 
+    
+#   namespace:
+#     cicd : jenkins
+#     database: db
+#     app : app
+#     log : log
+#   replicas:
+#     frontend: 1
+#     backend: 1
+
+# # Ingress Settings
+# ingress:
+#   host: hackathon-starter.example.com
+#   tls_secret: hackathon-starter-tls
+
+# # Monitoring Settings
+# monitoring:
+#   prometheus:
+#     enabled: true
+#   grafana:
+#     enabled: true
+
+# # Logging Settings
+# logging:
+#   elasticsearch:
+#     enabled: true
+#   kibana:
+#     enabled: true
+
+# # CI/CD Settings
+# cicd:
+#   jenkins_url: http://jenkins.example.com
+#   github_repo: https://github.com/your-username/hackathon-starter.git
+#   branch: main

@@ -1,0 +1,149 @@
+- job:
+    name: hackathon-starter-cicd-pipeline
+    project-type: pipeline
+    description: 'CI/CD Pipeline for Hackathon Starter project with defined stages'
+    pipeline-scm:
+      scm:
+        - git:
+            url: https://github.com/sahat/hackathon-starter.git
+            branches:
+              - master
+      script-path: jenkins/Jenkinsfile
+    triggers:
+      - github
+    properties:
+      - github:
+          url: https://github.com/sahat/hackathon-starter
+
+- job-template:
+    name: '{service}-build-test-deploy'
+    description: 'Pipeline for {service} service of Hackathon Starter with explicit stages'
+    project-type: pipeline
+    pipeline:
+      definition: |
+        pipeline {
+          agent any
+          
+          stages {
+            stage('Checkout Code') {
+              steps {
+                // Checkout code from the repository
+                checkout scm
+              }
+            }
+
+            stage('Install Dependencies') {
+              steps {
+                // Install project dependencies
+                sh 'npm install'
+              }
+            }
+
+            stage('Run Tests') {
+              steps {
+                // Run automated tests
+                sh 'npm test'
+              }
+            }
+
+            stage('Feature Tests') {
+              when {
+                expression {
+                  return fileExists('test/blog.js')
+                }
+              }
+              steps {
+                // Run additional feature-specific tests if they exist
+                sh 'npm run test:blog'
+              }
+            }
+
+            stage('Build Docker Image') {
+              steps {
+                // Build Docker image for the service
+                sh 'docker build -t {registry}/{service}:$BUILD_NUMBER -f Dockerfile .'
+              }
+            }
+
+            stage('Push Docker Image') {
+              steps {
+                // Push the built Docker image to the registry
+                sh 'docker push {registry}/{service}:$BUILD_NUMBER'
+              }
+            }
+
+            stage('Deploy to Kubernetes') {
+              steps {
+                // Apply Kubernetes manifests and set image for the service
+                sh '''
+                kubectl apply -f k8s/{service}-deployment.yaml
+                kubectl set image deployment/{service} {service}={registry}/{service}:$BUILD_NUMBER
+                '''
+              }
+            }
+          }
+        }
+    registry: your-registry.azurecr.io
+
+- project:
+    name: hackathon-starter
+    service: backend
+    job: '{service}-build-test-deploy'
+
+# - job:
+#     name: hackathon-starter-cicd-pipeline
+#     project-type: pipeline
+#     description: 'CI/CD Pipeline for Hackathon Starter project'
+#     pipeline-scm:
+#       scm:
+#         - git:
+#             url: https://github.com/sahat/hackathon-starter.git
+#             branches:
+#               - main
+#       script-path: Jenkinsfile
+#     triggers:
+#       - github
+#     properties:
+#       - github:
+#           url: https://github.com/sahat/hackathon-starter
+
+# - job-template:
+#     name: '{service}-build-test-deploy'
+#     description: 'Pipeline for {service} service of Hackathon Starter'
+#     project-type: pipeline
+#     pipeline-scm:
+#       scm:
+#         - git:
+#             url: https://github.com/sahat/hackathon-starter.git
+#             branches:
+#               - master
+#       script-path: Jenkinsfile
+#     builders:
+#       - shell: |
+#           # Pull latest code
+#           git pull origin main
+
+#           # Run automated tests
+#           npm install
+#           npm test
+
+#           # Run blog post feature tests (if available)
+#           if [ -f "test/blog.js" ]; then
+#             npm run test:blog
+#           fi
+
+#           # Build Docker image
+#           docker build -t {registry}/{service}:$BUILD_NUMBER -f Dockerfile .
+
+#           # Push Docker image to registry
+#           # docker push {registry}/{service}:$BUILD_NUMBER
+
+#           # # Apply Kubernetes manifests
+#           # kubectl apply -f k8s/{service}-deployment.yaml
+#           # kubectl set image deployment/{service} {service}={registry}/{service}:$BUILD_NUMBER
+
+# - project:
+#     name: hackathon-starter
+#     service: backend
+#     registry: your-registry.azurecr.io
+#     job: '{service}-build-test-deploy'

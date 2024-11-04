@@ -1,0 +1,33 @@
+{{- range $name, $deployments := .Values.kubernetes.deployments }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.app_name }}-{{ $name }}
+  namespace: {{ $.Values.kubernetes.namespace.app }}
+spec:
+  replicas: {{ $deployments.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $.Values.app_name }}  # This should be consistent with the labels in the template
+      component: {{ $name }}        # Ensure this matches the label in the template
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.app_name }}   # Match with selector labels
+        component: {{ $name }}         # Match with selector labels
+      namespace: {{ $.Values.kubernetes.namespace.app }}
+    spec:
+      containers:
+      - name: {{ $name }}
+        image: {{ $.Values.dockerRegistry.url }}/{{ $deployments.image }}
+        ports:
+        - containerPort: {{ $deployments.containerPort }}
+        resources:
+          {{- toYaml $deployments.resources | nindent 10 }}
+        {{- if $deployments.env }}
+        env:
+          {{- toYaml $deployments.env | nindent 10 }}
+        {{- end }}
+      imagePullSecrets:
+      - name : ghcr-secret
+{{- end }}

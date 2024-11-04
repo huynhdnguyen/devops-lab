@@ -1,0 +1,62 @@
+appName: hackathon-starter
+environment: production
+database:
+  type: mongodb
+  host: mongodb.default.svc.cluster.local
+  port: 27017
+  name: hackathon_db
+  userName: admin
+  passWord: admin
+dockerRegistry:
+  url: ghcr.io
+  username: huynhdnguyen
+  token: Create_Personal_Access_Token_(PAT)
+kubernetes:
+  namespace:
+    cicd: jenkins
+    app: app
+    log: log
+  deployments:
+    app:
+      name: backend
+      replicas: 1
+      image: ghcr.io/huynhdnguyen/hackathon-starter:20241104153307
+      containerPort: 8080
+      resources:
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+      env:
+        - name: MONGODB_URI
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MONGODB_URI
+        # - name: DB_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: app-db-secrets
+        #       key: DB_PASSWORD
+  services:
+    backend:
+      name: backend
+      port: 8080
+      targetPort: 8080
+      type: ClusterIP
+ingress:
+  enabled: false
+  host: hackathon-starter.example.com
+  tlsSecret: hackathon-starter-tls
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+logging:
+  elasticsearch:
+    enabled: true
+  kibana:
+    enabled: true

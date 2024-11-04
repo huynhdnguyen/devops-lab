@@ -1,0 +1,35 @@
+jenkins:
+  systemMessage: "Jenkins configured by Configuration as Code (JCasC)"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "admin"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+jobs:
+  - script: |
+      pipeline {
+        agent any
+        stages {
+          stage('Build') {
+            steps {
+              echo 'Building...'
+            }
+          }
+          stage('Test') {
+            steps {
+              echo 'Testing...'
+            }
+          }
+          stage('Deploy') {
+            steps {
+              echo 'Deploying...'
+            }
+          }
+        }
+      }
+    name: "Example-Pipeline-Job"

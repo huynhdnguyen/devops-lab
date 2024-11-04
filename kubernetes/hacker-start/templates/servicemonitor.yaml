@@ -1,0 +1,13 @@
+# {{- if .Values.monitoring.prometheus.enabled }}
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: {{ .Values.app_name }}-monitor
+#   namespace: {{ .Values.kubernetes.namespace.app }}
+# spec:
+#   selector:
+#     matchLabels:
+#       app: {{ .Values.app_name }}
+#   endpoints:
+#   - port: metrics
+# {{- end }}
