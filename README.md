@@ -1,8 +1,23 @@
-Create Personal Access Token (PAT) in GitHub:
+1.Create Personal Access Token (PAT) in GitHub:
+- GitHub Settings > Developer settings > Personal access tokens ( with write:packages permission)
+- input to config.yaml > dockerRegistry > token
 
-GitHub Settings > Developer settings > Personal access tokens ( with write:packages permission)
+2. Run
+```bash
+# Get the latest application
+git clone https://github.com/sahat/hackathon-starter app/hackathon-starter
 
+# Run setup enviroment
+./scripts/setup.sh 
 
+# Run build image
+./scripts/build.sh
+
+# Deploy on minikube
+./scripts/deploy.sh
+```
+
+```code 
 ├── README.md
 ├── config.yaml
 ├── docker
@@ -26,3 +41,4 @@ GitHub Settings > Developer settings > Personal access tokens ( with write:packa
     ├── build.sh
     ├── deploy.sh
     └── setup.sh
+```

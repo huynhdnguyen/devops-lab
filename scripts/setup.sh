@@ -75,11 +75,6 @@ if ! command_exists helm; then
     curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 fi
 
-# Install Jenkins
-echo "Installing Jenkins..."
-helm repo add jenkins https://charts.jenkins.io
-helm repo update
-#helm install jenkins jenkins/jenkins
 
 # Install Terraform
 # if ! command_exists terraform; then
