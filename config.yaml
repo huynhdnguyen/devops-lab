@@ -5,8 +5,8 @@ database:
   host: mongodb.default.svc.cluster.local
   port: 27017
   name: hackathon_db
-  userName: admin
-  passWord: admin
+  userName: 
+  passWord: 
 dockerRegistry:
   url: ghcr.io
   username: huynhdnguyen
